@@ -64,6 +64,7 @@ class VOCDataset(Dataset):
             # https://docs.python.org/3/library/xml.etree.elementtree.html)
             # Loop through the `tree` to find all objects in the image
             #######################################################################
+            root = tree.getroot()
 
             #  The class vector should be a 20-dimensional vector with class[i] = 1 if an object of class i is present in the image and 0 otherwise
             class_vec = torch.zeros(20)
@@ -72,11 +73,23 @@ class VOCDataset(Dataset):
             # The difficult attribute specifies whether a class is ambiguous and by setting its weight to zero it does not contribute to the loss during training 
             weight_vec = torch.ones(20)
 
+            for obj in root.findall('.//object'):
+               
+                name = obj.find('name').text
+                class_index = VOCDataset.get_class_index(name)
+                class_vec[class_index] = 1
+
+                difficult = int(obj.find('difficult').text)
+                if difficult == 1:
+                    weight_vec[class_index] = 0
+
+
             ######################################################################
             #                            END OF YOUR CODE                        #
             ######################################################################
 
             label_list.append((class_vec, weight_vec))
+            
 
         return label_list
 
@@ -92,7 +105,16 @@ class VOCDataset(Dataset):
         # change and you will have to write the correct value of `flat_dim`
         # in line 46 in simple_cnn.py
         ######################################################################
-        pass
+        augmentations = []
+
+
+        augmentations.append(transforms.RandomHorizontalFlip())
+        augmentations.append(transforms.RandomVerticalFlip())
+        augmentations.append(transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1))
+
+        augmentations.append(transforms.CenterCrop(size=(64, 64)))
+
+        return augmentations
         ######################################################################
         #                            END OF YOUR CODE                        #
         ######################################################################

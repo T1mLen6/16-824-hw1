@@ -53,7 +53,18 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             # Function Outputs:
             #   - `output`: Computed loss, a single floating point number
             ##################################################################
-            loss = 0
+            
+            # Calculate the squared error between output and target
+            squared_error = (output - target) ** 2
+
+            # Apply the weights to the squared error
+            weighted_error = squared_error * wgt
+
+            # Compute the mean squared error for each example in the batch
+            mse_per_example = torch.sum(weighted_error, dim=1) / torch.sum(wgt, dim=1)
+
+            # Compute the overall mean squared error across the batch
+            loss = torch.mean(mse_per_example)
             ##################################################################
             #                          END OF YOUR CODE                      #
             ##################################################################
