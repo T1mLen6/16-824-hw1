@@ -28,14 +28,14 @@ if __name__ == "__main__":
     print('*' * 50)
 
     args = ARGS(
-        epochs=5,
+        epochs=20,
         inp_size=64,
         use_cuda=True,
-        val_every=25,
+        val_every=100,
         lr=0.0005,
-        batch_size=100,
-        step_size=1,
-        gamma=0.7
+        batch_size=20,
+        step_size=2,
+        gamma=0.8
     )
     ##################################################################
     #                          END OF YOUR CODE                      #

@@ -112,7 +112,7 @@ class VOCDataset(Dataset):
         augmentations.append(transforms.RandomVerticalFlip())
         augmentations.append(transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1))
 
-        augmentations.append(transforms.CenterCrop(size=(64, 64)))
+        augmentations.append(transforms.CenterCrop(size=(224, 224)))
 
         return augmentations
         ######################################################################

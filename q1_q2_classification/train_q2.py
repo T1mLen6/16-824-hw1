@@ -49,16 +49,16 @@ if __name__ == "__main__":
     # You should experiment and choose the correct hyperparameters
     # You should get a map of around 50 in 50 epochs
     ##################################################################
-    # args = ARGS(
-    #     epochs=50,
-    #     inp_size=64,
-    #     use_cuda=True,
-    #     val_every=70
-    #     lr=# TODO,
-    #     batch_size=#TODO,
-    #     step_size=#TODO,
-    #     gamma=#TODO
-    # )
+    args = ARGS(
+        epochs=35,
+        inp_size=224,
+        use_cuda=True,
+        val_every=100,
+        lr=0.0005,
+        batch_size=35,
+        step_size=5,
+        gamma=0.1
+    )
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################

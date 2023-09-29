@@ -53,18 +53,23 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             # Function Outputs:
             #   - `output`: Computed loss, a single floating point number
             ##################################################################
-            
-            # Calculate the squared error between output and target
-            squared_error = (output - target) ** 2
+            # Ensure numerical stability by adding a small epsilon value
+            epsilon = 1e-15
 
-            # Apply the weights to the squared error
-            weighted_error = squared_error * wgt
+            # Apply sigmoid activation to the output to get class probabilities
+            sigmoid_output = torch.sigmoid(output)
 
-            # Compute the mean squared error for each example in the batch
-            mse_per_example = torch.sum(weighted_error, dim=1) / torch.sum(wgt, dim=1)
+            # Calculate the binary cross-entropy loss for each element in the batch
+            loss_per_element = - (target * torch.log(sigmoid_output + epsilon) + (1 - target) * torch.log(1 - sigmoid_output + epsilon))
 
-            # Compute the overall mean squared error across the batch
-            loss = torch.mean(mse_per_example)
+            # Apply the weights to the loss
+            weighted_loss = loss_per_element * wgt
+
+            # Compute the mean loss for each example in the batch
+            loss_per_example = torch.sum(weighted_loss, dim=1) / torch.sum(wgt, dim=1)
+
+            # Compute the overall mean loss across the batch
+            loss = torch.mean(loss_per_example)
             ##################################################################
             #                          END OF YOUR CODE                      #
             ##################################################################
