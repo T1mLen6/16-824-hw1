@@ -50,14 +50,14 @@ if __name__ == "__main__":
     # You should get a map of around 50 in 50 epochs
     ##################################################################
     args = ARGS(
-        epochs=35,
+        epochs=50,
         inp_size=224,
         use_cuda=True,
         val_every=100,
-        lr=0.0005,
-        batch_size=35,
+        lr=0.0001,
+        batch_size=20,
         step_size=5,
-        gamma=0.1
+        gamma=0.8
     )
     ##################################################################
     #                          END OF YOUR CODE                      #
