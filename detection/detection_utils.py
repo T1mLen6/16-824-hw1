@@ -140,18 +140,19 @@ def fcos_get_deltas_from_locations(
     # Set this to Tensor of shape (N, 4) giving deltas (left, top, right, bottom)
     # from the locations to GT box edges, normalized by FPN stride.
 
-    # Get the center coordinates (xc, yc) of GT boxes.
-    gt_xc = (gt_boxes[:, 0] + gt_boxes[:, 2]) / 2
-    gt_yc = (gt_boxes[:, 1] + gt_boxes[:, 3]) / 2
+    # Initialize the deltas tensor with zeros.
+    deltas = torch.zeros_like(gt_boxes)
 
-    # Calculate the deltas (left, top, right, bottom).
-    left_deltas = (gt_xc - locations[:, 0]) / stride
-    top_deltas = (gt_yc - locations[:, 1]) / stride
-    right_deltas = (gt_boxes[:, 2] - locations[:, 0]) / stride
-    bottom_deltas = (gt_boxes[:, 3] - locations[:, 1]) / stride
+    # Calculate the deltas (left, top, right, bottom) for each box.
+    deltas[:, 0] = (locations[:, 0] - gt_boxes[:, 0]) / stride
+    deltas[:, 1] = (locations[:, 1] - gt_boxes[:, 1]) / stride
+    deltas[:, 2] = (gt_boxes[:, 2] - locations[:, 0]) / stride
+    deltas[:, 3] = (gt_boxes[:, 3] - locations[:, 1]) / stride
 
-    # Stack the deltas into a single tensor (N, 4).
-    deltas = torch.stack([left_deltas, top_deltas, right_deltas, bottom_deltas], dim=1)
+    # For background boxes, set the deltas to (-1, -1, -1, -1).
+    is_background = (gt_boxes == -1).all(dim=1)
+    deltas[is_background] = -1
+    
     ##########################################################################
     #                             END OF YOUR CODE                           #
     ##########################################################################
@@ -290,7 +291,7 @@ def get_fpn_location_coords(
         b, c, H, W = feat_shape
 
         # Create a grid of coordinates for the feature map
-        y_coords, x_coords = torch.meshgrid(torch.arange(0, H), torch.arange(0, W))
+        y_coords, x_coords = torch.meshgrid(torch.arange(0, H)+0.5, torch.arange(0, W)+0.5)
 
         # Reshape the coordinates to a flat tensor
         flat_x_coords = x_coords.view(-1)
