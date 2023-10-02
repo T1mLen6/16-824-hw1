@@ -54,7 +54,7 @@ class DetectorBackboneWithFPN(nn.Module):
         # Features are a dictionary with keys as defined above. Values are
         # batches of tensors in NCHW format, that give intermediate features
         # from the backbone network.
-        
+
         dummy_out = self.backbone(torch.randn(2, 3, 224, 224))
         dummy_out_shapes = [(key, value.shape) for key, value in dummy_out.items()]
 
@@ -172,6 +172,19 @@ class FCOSPredictionNetwork(nn.Module):
         stem_cls = []
         stem_box = []
         # Replace "pass" statement with your code
+
+        # Number of convolution layers in the stem
+        num_conv_layers = len(stem_channels)
+
+        for i in range(num_conv_layers):
+            in_ch = in_channels if i == 0 else stem_channels[i - 1]
+            out_ch = stem_channels[i]
+
+            stem_cls.append(nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1))
+            stem_cls.append(nn.ReLU(inplace=True))
+
+            stem_box.append(nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1))
+            stem_box.append(nn.ReLU(inplace=True))
         pass
 
         # Wrap the layers defined by student into a `nn.Sequential` module:
@@ -194,9 +207,9 @@ class FCOSPredictionNetwork(nn.Module):
         ######################################################################
 
         # Replace these lines with your code, keep variable names unchanged.
-        self.pred_cls = None  # Class prediction conv
-        self.pred_box = None  # Box regression conv
-        self.pred_ctr = None  # Centerness conv
+        self.pred_cls = nn.Conv2d(stem_channels[-1], num_classes, kernel_size=3, stride=1, padding=1)  # Class prediction conv
+        self.pred_box = nn.Conv2d(stem_channels[-1], 4, kernel_size=3, stride=1, padding=1)  # Box regression conv
+        self.pred_ctr = nn.Conv2d(stem_channels[-1], 1, kernel_size=3, stride=1, padding=1)  # Centerness conv
 
         ######################################################################
         #                           END OF YOUR CODE                         #
@@ -240,9 +253,25 @@ class FCOSPredictionNetwork(nn.Module):
         # DO NOT apply sigmoid to classification and centerness logits.
         ######################################################################
         # Fill these with keys: {"p3", "p4", "p5"}, same as input dictionary.
-        class_logits = {}
-        boxreg_deltas = {}
-        centerness_logits = {}
+        class_logits = {"p3": None, "p4": None, "p5": None}
+        boxreg_deltas = {"p3": None, "p4": None, "p5": None}
+        centerness_logits = {"p3": None, "p4": None, "p5": None}
+                
+        # Iterate over FPN feature maps
+        for level_name, feats in feats_per_fpn_level.items():
+            # Apply the stem layers to the input feature map
+            cls_feats = self.stem_cls(feats)
+            box_feats = self.stem_box(feats)
+
+            # Apply prediction layers for classification, box regression, and centerness
+            cls_logits = self.pred_cls(cls_feats)
+            box_deltas = self.pred_box(box_feats)
+            ctr_logits = self.pred_ctr(box_feats)
+
+            # Store predictions in dictionaries using FPN level as the key
+            class_logits[level_name] = cls_logits
+            boxreg_deltas[level_name] = box_deltas
+            centerness_logits[level_name] = ctr_logits
         ######################################################################
         #                           END OF YOUR CODE                         #
         ######################################################################
