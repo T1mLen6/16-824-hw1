@@ -107,6 +107,7 @@ class VOC2007DetectionTiny(torch.utils.data.Dataset):
         # TODO: Remove this after the JSON files are fixed on Justin's server:
         image_path = image_path.replace("./here/", "")
         image_path = os.path.join(self.dataset_dir, image_path)
+        print(image_path)
         image = Image.open(image_path).convert("RGB")
 
         # Collect a list of GT boxes: (N, 4), and GT classes: (N, )

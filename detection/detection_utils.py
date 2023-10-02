@@ -210,10 +210,7 @@ def fcos_make_centerness_targets(deltas: torch.Tensor):
     ##########################################################################
     # TODO: Implement the centerness calculation logic.                      #
     # centerness is defined as sqrt(
-    #   (min(left, right) * min(top, bottom)) 
-    #   ______________________________________
-    #   (max(left, right) * max(top, bottom))
-    # )
+    #   (min(left, right) * min(top, bottom))/(max(left, right) * max(top, bottom)))
     ##########################################################################
     centerness = None
     ##########################################################################
@@ -258,7 +255,25 @@ def get_fpn_location_coords(
         ##################################################################–####
         # TODO: Implement logic to get location co-ordinates below.          #
         ######################################################################
-        pass
+        # Get feature map height and width
+        _, _, H, W = feat_shape
+
+        # Create a grid of coordinates for the feature map
+        y_coords, x_coords = torch.meshgrid(torch.arange(0, H), torch.arange(0, W))
+
+        # Reshape the coordinates to a flat tensor
+        flat_x_coords = x_coords.view(-1)
+        flat_y_coords = y_coords.view(-1)
+
+        # Calculate the coordinates in the image space
+        xc = flat_x_coords * level_stride
+        yc = flat_y_coords * level_stride
+
+        # Stack the x and y coordinates to create (H*W, 2) tensor
+        coords = torch.stack((xc, yc), dim=1)
+
+        # Store the coordinates in the dictionary
+        location_coords[level_name] = coords.to(device, dtype)
         ######################################################################
         #                             END OF YOUR CODE                       #
         ######################################################################
