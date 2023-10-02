@@ -1,4 +1,4 @@
-Please follow the instructions for this part of the assignment in THIS order!
+Please follow the instructions for this part of the assignment in THIS order!!
 
 0. Read the FCOS paper (Fully Convolutional One-stage Object Detection), and 
 skim through the starter code. You will be implementing functions in `detection_utils.py`
