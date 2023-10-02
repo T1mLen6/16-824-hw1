@@ -139,8 +139,19 @@ def fcos_get_deltas_from_locations(
     ##########################################################################
     # Set this to Tensor of shape (N, 4) giving deltas (left, top, right, bottom)
     # from the locations to GT box edges, normalized by FPN stride.
-    deltas = None
-    pass
+
+    # Get the center coordinates (xc, yc) of GT boxes.
+    gt_xc = (gt_boxes[:, 0] + gt_boxes[:, 2]) / 2
+    gt_yc = (gt_boxes[:, 1] + gt_boxes[:, 3]) / 2
+
+    # Calculate the deltas (left, top, right, bottom).
+    left_deltas = (gt_xc - locations[:, 0]) / stride
+    top_deltas = (gt_yc - locations[:, 1]) / stride
+    right_deltas = (gt_boxes[:, 2] - locations[:, 0]) / stride
+    bottom_deltas = (gt_boxes[:, 3] - locations[:, 1]) / stride
+
+    # Stack the deltas into a single tensor (N, 4).
+    deltas = torch.stack([left_deltas, top_deltas, right_deltas, bottom_deltas], dim=1)
     ##########################################################################
     #                             END OF YOUR CODE                           #
     ##########################################################################
@@ -181,7 +192,22 @@ def fcos_apply_deltas_to_locations(
     # for our use-case because the feature center must lie INSIDE the final  #
     # box. Make sure to clip them to zero.                                   #
     ##########################################################################
-    output_boxes = None
+
+    deltas = deltas * stride
+
+    # Calculate the resulting bounding box coordinates (x1, y1, x2, y2).
+    x1 = locations[:, 0] - deltas[:, 0]  # Left
+    y1 = locations[:, 1] - deltas[:, 1]  # Top
+    x2 = locations[:, 0] + deltas[:, 2]  # Right
+    y2 = locations[:, 1] + deltas[:, 3]  # Bottom
+
+    # Stack the coordinates into a single tensor (N, 4).
+    output_boxes = torch.stack([x1, y1, x2, y2], dim=1)
+
+    # Clip the output boxes to ensure they are valid.
+    output_boxes[:, [0, 2]] = output_boxes[:, [0, 2]].clamp(min=0)
+    output_boxes[:, [1, 3]] = output_boxes[:, [1, 3]].clamp(min=0)
+
 
     ##########################################################################
     #                             END OF YOUR CODE                           #
@@ -209,10 +235,15 @@ def fcos_make_centerness_targets(deltas: torch.Tensor):
     """
     ##########################################################################
     # TODO: Implement the centerness calculation logic.                      #
-    # centerness is defined as sqrt(
-    #   (min(left, right) * min(top, bottom))/(max(left, right) * max(top, bottom)))
+    # centerness is defined as sqrt((min(left, right) * min(top, bottom))/(max(left, right) * max(top, bottom)))
     ##########################################################################
-    centerness = None
+    left, top, right, bottom = deltas[:, 0], deltas[:, 1], deltas[:, 2], deltas[:, 3]
+
+    centerness = torch.sqrt((torch.min(left, right) * torch.min(top, bottom)) / 
+                            (torch.max(left, right) * torch.max(top, bottom)))
+
+    # For background boxes, set the centerness target to -1.
+    centerness[deltas.min(dim=1).values == -1] = -1
     ##########################################################################
     #                             END OF YOUR CODE                           #
     ##########################################################################
@@ -256,7 +287,7 @@ def get_fpn_location_coords(
         # TODO: Implement logic to get location co-ordinates below.          #
         ######################################################################
         # Get feature map height and width
-        _, _, H, W = feat_shape
+        b, c, H, W = feat_shape
 
         # Create a grid of coordinates for the feature map
         y_coords, x_coords = torch.meshgrid(torch.arange(0, H), torch.arange(0, W))
