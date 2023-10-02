@@ -78,6 +78,16 @@ class DetectorBackboneWithFPN(nn.Module):
         # there are trainable weights inside it.
         # Add THREE lateral 1x1 conv and THREE output 3x3 conv layers.
         self.fpn_params = nn.ModuleDict()
+
+
+        # Initialize lateral 1x1 conv layers
+        for key, value in dummy_out_shapes:
+            self.fpn_params[f"lateral_conv_{key}"] = nn.Conv2d(value[1], out_channels, kernel_size=1, stride=1)
+        
+        # Initialize output 3x3 conv layers
+        for key in ["c3", "c4", "c5"]:
+            self.fpn_params[f"output_conv_{key}"] = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+
         ######################################################################
         #                            END OF YOUR CODE                        #
         ######################################################################
@@ -103,7 +113,15 @@ class DetectorBackboneWithFPN(nn.Module):
         # HINT: Use `F.interpolate` to upsample FPN features.                #
         ######################################################################
 
+        # Apply lateral 1x1 convolutions and store in the dictionary
+        for key in ["c3", "c4", "c5"]:
+            fpn_feats[key] = self.fpn_params[f"lateral_conv_{key}"](backbone_feats[key])
+
+        # Apply output 3x3 convolutions and store in the dictionary
+        for key in ["c3", "c4", "c5"]:
+            fpn_feats[key] = self.fpn_params[f"output_conv_{key}"](fpn_feats[key])
         pass
+
         ######################################################################
         #                            END OF YOUR CODE                        #
         ######################################################################
