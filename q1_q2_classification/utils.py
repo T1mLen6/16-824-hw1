@@ -43,7 +43,7 @@ class ARGS(object):
     # set flag to True if you wish to save the model after training
     save_at_end = False
     # set this to value >0 if you wish to save every x epochs
-    save_freq=-1
+    save_freq = -1
     # set true if using GPU during training
     use_cuda = True
     # input size

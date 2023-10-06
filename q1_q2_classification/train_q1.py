@@ -32,7 +32,7 @@ if __name__ == "__main__":
         inp_size=64,
         use_cuda=True,
         val_every=100,
-        lr=0.0005,
+        lr=0.0001,
         batch_size=20,
         step_size=2,
         gamma=0.8

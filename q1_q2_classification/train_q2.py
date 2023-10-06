@@ -53,11 +53,12 @@ if __name__ == "__main__":
         epochs=50,
         inp_size=224,
         use_cuda=True,
-        val_every=100,
-        lr=0.0001,
-        batch_size=20,
+        val_every=70,
+        lr=0.00005,
+        batch_size=14,
         step_size=5,
-        gamma=0.8
+        gamma=0.5,
+        save_at_end=True
     )
     ##################################################################
     #                          END OF YOUR CODE                      #
