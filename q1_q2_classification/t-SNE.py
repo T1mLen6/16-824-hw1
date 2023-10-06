@@ -30,7 +30,7 @@ import matplotlib.patches as mpatches
 if __name__ =="__main__": 
 
     test_loader = utils.get_data_loader(
-        'voc', train=False, batch_size=100, split='test', inp_size=224)
+        'voc', train=False, batch_size=25, split='test', inp_size=224)
     
     CLASS_NAMES = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car',
                    'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike',

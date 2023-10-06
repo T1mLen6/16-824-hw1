@@ -66,11 +66,9 @@ class VOCDataset(Dataset):
             #######################################################################
             root = tree.getroot()
 
-            #  The class vector should be a 20-dimensional vector with class[i] = 1 if an object of class i is present in the image and 0 otherwise
-            class_vec = torch.zeros(20)
+            
 
-            # The weight vector should be a 20-dimensional vector with weight[i] = 0 iff an object of class i has the `difficult` attribute set to 1 in the XML file and 1 otherwise
-            # The difficult attribute specifies whether a class is ambiguous and by setting its weight to zero it does not contribute to the loss during training 
+            
             weight_vec = torch.ones(20)
 
             for obj in root.findall('.//object'):

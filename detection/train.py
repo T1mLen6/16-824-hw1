@@ -28,9 +28,10 @@ from detection_helper import train_detector, inference_with_detector
 from detection_helper import VOC2007DetectionTiny
 from one_stage_detector import FCOS
 from utils.utils import detection_visualizer
+import numpy as np
 
 if torch.cuda.is_available():
-    print("Good to go!")
+    print("Using CUDA")
     DEVICE = torch.device("cuda")
 else:
     print("Please check your GPU (if running on AWS). Using CPU instead.")
@@ -118,7 +119,7 @@ def visualize_gt(train_dataset, val_dataset):
         # Remove padded boxes from visualization.
         is_valid = gt_boxes[:, 4] >= 0
         img = detection_visualizer(image, val_dataset.idx_to_class, gt_boxes[is_valid])
-        gt_images.append(torch.from_numpy(img))
+        gt_images.append(torch.from_numpy(np.array(img, copy=True)))
     
     img_grid = make_grid(gt_images, nrow=8)
     writer.add_image("train/gt_images", img_grid, global_step=idx)
@@ -136,18 +137,18 @@ def main(args):
         hyperparams = HyperParameters(
             max_iters=250,
             lr=5e-3,
-            log_period=10,
+            log_period=100,
         )
     else:
         hyperparams = HyperParameters(
             lr=8e-3,
-            max_iters=9000,
+            max_iters=9000, #change！！！！！！！！！！！！！！！！！！！
             log_period=100,
         )
     detector = FCOS(
         num_classes=NUM_CLASSES,
-        fpn_channels=64,
-        stem_channels=[64, 64],
+        fpn_channels=128,
+        stem_channels=[128, 128],
     )
 
     if args.visualize_gt:
@@ -184,7 +185,7 @@ def main(args):
             detector,
             small_val_loader,
             val_dataset.idx_to_class,
-            score_thresh=0.7,
+            score_thresh=0.5,
             nms_thresh=0.5,
             device=DEVICE,
             dtype=torch.float32,
@@ -210,13 +211,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--visualize_gt", action="store_true")
     parser.add_argument(
-        "--overfit", type=bool, default=True
+        "--overfit", action="store_true"
     )
     parser.add_argument(
-        "--inference", type=bool, default=False
+        "--inference", action="store_true"
     )
     parser.add_argument(
-        "--test_inference", type=bool, default=False
+        "--test_inference", action="store_true"
     )
     args = parser.parse_args()
     print(args.test_inference)

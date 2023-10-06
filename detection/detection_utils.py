@@ -152,7 +152,7 @@ def fcos_get_deltas_from_locations(
     # For background boxes, set the deltas to (-1, -1, -1, -1).
     is_background = (gt_boxes == -1).all(dim=1)
     deltas[is_background] = -1
-    
+    deltas = deltas[:, :4]
     ##########################################################################
     #                             END OF YOUR CODE                           #
     ##########################################################################
@@ -194,7 +194,7 @@ def fcos_apply_deltas_to_locations(
     # box. Make sure to clip them to zero.                                   #
     ##########################################################################
 
-    deltas = deltas * stride
+    deltas = deltas.clamp(min=0) * stride
 
     # Calculate the resulting bounding box coordinates (x1, y1, x2, y2).
     x1 = locations[:, 0] - deltas[:, 0]  # Left
@@ -206,8 +206,8 @@ def fcos_apply_deltas_to_locations(
     output_boxes = torch.stack([x1, y1, x2, y2], dim=1)
 
     # Clip the output boxes to ensure they are valid.
-    output_boxes[:, [0, 2]] = output_boxes[:, [0, 2]].clamp(min=0)
-    output_boxes[:, [1, 3]] = output_boxes[:, [1, 3]].clamp(min=0)
+    #output_boxes[:, [0, 2]] = output_boxes[:, [0, 2]].clamp(min=0)
+    #output_boxes[:, [1, 3]] = output_boxes[:, [1, 3]].clamp(min=0)
 
 
     ##########################################################################
@@ -290,19 +290,18 @@ def get_fpn_location_coords(
         # Get feature map height and width
         b, c, H, W = feat_shape
 
+        x = torch.arange(W) + 0.5
+        y = torch.arange(H) + 0.5
         # Create a grid of coordinates for the feature map
-        y_coords, x_coords = torch.meshgrid(torch.arange(0, H)+0.5, torch.arange(0, W)+0.5)
+        x_coords, y_coords = torch.meshgrid(x*level_stride, y*level_stride)
 
         # Reshape the coordinates to a flat tensor
-        flat_x_coords = x_coords.view(-1)
-        flat_y_coords = y_coords.view(-1)
+        flat_x_coords = x_coords.reshape(-1)
+        flat_y_coords = y_coords.reshape(-1)
 
-        # Calculate the coordinates in the image space
-        xc = flat_x_coords * level_stride
-        yc = flat_y_coords * level_stride
-
+    
         # Stack the x and y coordinates to create (H*W, 2) tensor
-        coords = torch.stack((xc, yc), dim=1)
+        coords = torch.stack((flat_x_coords, flat_y_coords), dim=1)
 
         # Store the coordinates in the dictionary
         location_coords[level_name] = coords.to(device, dtype)

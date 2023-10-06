@@ -24,10 +24,10 @@ class TestDetectorBackboneWithFPN(unittest.TestCase):
         self.out_channels = 64
         self.num_classes = 20
         if torch.cuda.is_available():
-            #print("Using CUDA for testing.")
+            print("Using CUDA for testing.")
             self.device = torch.device("cuda")
         else:
-            #print("Using CPU, CUDA not available for testing.")
+            print("Using CPU, CUDA not available for testing.")
             self.device = torch.device("cpu")
 
         self.backbone = DetectorBackboneWithFPN(out_channels=self.out_channels).to(self.device)
@@ -36,6 +36,7 @@ class TestDetectorBackboneWithFPN(unittest.TestCase):
 
     def test_backbone(self):
         if self.dummy_fpn_feats['p3'] is None:
+            print('test_backbone is skipped')
             self.skipTest("Detector backbone not implemented.")
 
         self.assertEqual(self.dummy_fpn_feats["p3"].shape, torch.Size([2, self.out_channels, 28, 28]))
@@ -107,6 +108,7 @@ class TestDetectorBackboneWithFPN(unittest.TestCase):
         input_location = torch.Tensor([[100, 200]])
         _deltas = fcos_get_deltas_from_locations(input_location, background_box, stride=8)
         if _deltas is None:
+            print("111111111111111111111111111111")
             self.skipTest("FCOS get deltas_from test is not implemented.")
         output_box = fcos_apply_deltas_to_locations(_deltas, input_location, stride=8)
         
