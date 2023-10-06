@@ -107,7 +107,7 @@ class VOC2007DetectionTiny(torch.utils.data.Dataset):
         # TODO: Remove this after the JSON files are fixed on Justin's server:
         image_path = image_path.replace("./here/", "")
         image_path = os.path.join(self.dataset_dir, image_path)
-        print(image_path)
+        #print(image_path)
         image = Image.open(image_path).convert("RGB")
 
         # Collect a list of GT boxes: (N, 4), and GT classes: (N, )
@@ -231,13 +231,16 @@ def train_detector(
         total_loss.backward()
         optimizer.step()
         lr_scheduler.step()
-        for key, value in losses.items():
-            writer.add_scalar("train/" + key + "_{}".format("overfit" if overfit else "full"), value, _iter)
+        #for key, value in losses.items():
+         #   writer.add_scalar("train/" + key + "_{}".format("overfit" if overfit else "full"), value, _iter)
         # Print losses periodically.
         if _iter % log_period == 0:
+            for key, value in losses.items():
+                writer.add_scalar("train/" + key + "_{}".format("overfit" if overfit else "full"), value, _iter)
             loss_str = f"[Iter {_iter}][loss: {total_loss:.3f}]"
             for key, value in losses.items():
                 loss_str += f"[{key}: {value:.3f}]"
+                
             print(loss_str)
             loss_history.append(total_loss.item())
             
